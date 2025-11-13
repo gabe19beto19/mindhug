@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Heart, BookOpen, Users, Lightbulb, Settings, Moon, Sun, Dog, Cat, Sparkles, Mail, Lock, User, MapPin, Globe, ChevronLeft, ChevronRight, Play, Pause, Volume2, LogOut, BarChart3, CreditCard, Languages } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Heart, BookOpen, Users, Lightbulb, Settings, Moon, Sun, Dog, Cat, Sparkles, Mail, Lock, User, MapPin, Globe, ChevronLeft, ChevronRight, Play, Pause, Volume2, LogOut, BarChart3, CreditCard, Languages, Search } from "lucide-react";
 
 type Mood = "happy" | "neutral" | "sad" | "crying" | "angry" | null;
 type Pet = "dog" | "cat" | null;
-type Screen = "register" | "petSelection" | "dashboard" | "diary" | "community" | "selfcare" | "tips" | "settings" | "relaxingSounds" | "breathingExercises" | "breathingSession" | "meditationList" | "meditationSession" | "gratitudeExercises" | "anxietyCrisis" | "sleepImprovement" | "dailyHabits";
+type Screen = "register" | "petSelection" | "dashboard" | "diary" | "community" | "selfcare" | "tips" | "settings" | "relaxingSounds" | "breathingExercises" | "breathingSession" | "meditationList" | "meditationSession" | "gratitudeExercises" | "anxietyCrisis" | "sleepImprovement" | "dailyHabits" | "statistics" | "subscription" | "accountSettings" | "languageSettings";
 
 interface UserData {
   name: string;
@@ -17,6 +17,7 @@ interface UserData {
   country: string;
   state: string;
   city: string;
+  language: string;
 }
 
 interface DiaryEntry {
@@ -70,6 +71,13 @@ interface GratitudeExercise {
   description: string;
 }
 
+interface UserStats {
+  consecutiveDays: number;
+  totalSessions: number;
+  totalMinutes: number;
+  longestStreak: number;
+}
+
 export default function MindHug() {
   // ✅ TODOS OS HOOKS NO TOPO (NUNCA CONDICIONAIS)
   const [screen, setScreen] = useState<Screen>("register");
@@ -82,7 +90,8 @@ export default function MindHug() {
     symptomsFrequency: "",
     country: "",
     state: "",
-    city: ""
+    city: "",
+    language: "pt-BR"
   });
   const [currentMood, setCurrentMood] = useState<Mood>(null);
   const [selectedPet, setSelectedPet] = useState<Pet>(null);
@@ -122,6 +131,37 @@ export default function MindHug() {
 
   // Estado para dropdown de perfil
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Estados para estatísticas do usuário
+  const [userStats, setUserStats] = useState<UserStats>({
+    consecutiveDays: 0,
+    totalSessions: 0,
+    totalMinutes: 0,
+    longestStreak: 0
+  });
+
+  // Estados para configurações de assinatura
+  const [subscriptionPlan, setSubscriptionPlan] = useState<"free" | "premium" | "pro">("free");
+
+  // Estado para busca de idioma
+  const [languageSearch, setLanguageSearch] = useState("");
+
+  // Lista de idiomas disponíveis
+  const availableLanguages = [
+    { code: "pt-BR", name: "Português (Brasil)", flag: "🇧🇷" },
+    { code: "en-US", name: "English (US)", flag: "🇺🇸" },
+    { code: "es-ES", name: "Español", flag: "🇪🇸" },
+    { code: "fr-FR", name: "Français", flag: "🇫🇷" },
+    { code: "de-DE", name: "Deutsch", flag: "🇩🇪" },
+    { code: "it-IT", name: "Italiano", flag: "🇮🇹" },
+    { code: "ja-JP", name: "日本語", flag: "🇯🇵" },
+    { code: "ko-KR", name: "한국어", flag: "🇰🇷" },
+    { code: "zh-CN", name: "中文 (简体)", flag: "🇨🇳" },
+    { code: "ru-RU", name: "Русский", flag: "🇷🇺" },
+    { code: "ar-SA", name: "العربية", flag: "🇸🇦" },
+    { code: "hi-IN", name: "हिन्दी", flag: "🇮🇳" }
+  ];
 
   // 50 frases motivacionais que mudam todo dia
   const motivationalQuotes = [
@@ -568,6 +608,61 @@ export default function MindHug() {
     { id: "35", category: "✨ Criativos e simbólicos", icon: "📆", title: "Desafio dos 21 dias", description: "Durante 21 dias seguidos, anote 3 coisas novas pelas quais é grato" }
   ];
 
+  // ✅ PERSISTÊNCIA DE DADOS COM LOCALSTORAGE
+  useEffect(() => {
+    // Carregar dados salvos ao iniciar
+    const savedData = localStorage.getItem('mindHugData');
+    if (savedData) {
+      try {
+        const parsed = JSON.parse(savedData);
+        if (parsed.userData) setUserData(parsed.userData);
+        if (parsed.selectedPet) setSelectedPet(parsed.selectedPet);
+        if (parsed.petLevel) setPetLevel(parsed.petLevel);
+        if (parsed.consecutiveDays) setConsecutiveDays(parsed.consecutiveDays);
+        if (parsed.userStats) setUserStats(parsed.userStats);
+        if (parsed.subscriptionPlan) setSubscriptionPlan(parsed.subscriptionPlan);
+        if (parsed.diaryEntries) setDiaryEntries(parsed.diaryEntries);
+        if (parsed.lastActivityDate) setLastActivityDate(parsed.lastActivityDate);
+        if (parsed.screen && parsed.screen !== 'register') setScreen(parsed.screen);
+      } catch (error) {
+        console.error('Erro ao carregar dados:', error);
+      }
+    }
+  }, []);
+
+  // Salvar dados sempre que mudarem
+  useEffect(() => {
+    const dataToSave = {
+      userData,
+      selectedPet,
+      petLevel,
+      consecutiveDays,
+      userStats,
+      subscriptionPlan,
+      diaryEntries,
+      lastActivityDate,
+      screen
+    };
+    localStorage.setItem('mindHugData', JSON.stringify(dataToSave));
+  }, [userData, selectedPet, petLevel, consecutiveDays, userStats, subscriptionPlan, diaryEntries, lastActivityDate, screen]);
+
+  // ✅ FECHAR DROPDOWN AO CLICAR FORA
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setProfileDropdownOpen(false);
+      }
+    }
+
+    if (profileDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [profileDropdownOpen]);
+
   // Sistema de nível do pet baseado em dias consecutivos
   useEffect(() => {
     const today = new Date().toDateString();
@@ -580,6 +675,11 @@ export default function MindHug() {
       if (lastActivityDate === yesterdayStr) {
         // Atividade no dia anterior - mantém sequência
         setConsecutiveDays(prev => prev + 1);
+        setUserStats(prev => ({
+          ...prev,
+          consecutiveDays: prev.consecutiveDays + 1,
+          longestStreak: Math.max(prev.longestStreak, prev.consecutiveDays + 1)
+        }));
         setMissedDays(0);
       } else {
         // Pulou dia(s)
@@ -590,6 +690,7 @@ export default function MindHug() {
         if (missedDays >= 3) {
           setPetLevel(1);
           setConsecutiveDays(0);
+          setUserStats(prev => ({ ...prev, consecutiveDays: 0 }));
           setMissedDays(0);
         }
       }
@@ -685,12 +786,27 @@ export default function MindHug() {
       setLastActivityDate(today);
       setMissedDays(0);
       
+      // Atualiza estatísticas
+      setUserStats(prev => ({
+        ...prev,
+        consecutiveDays: prev.consecutiveDays + 1,
+        totalSessions: prev.totalSessions + 1,
+        totalMinutes: prev.totalMinutes + 5,
+        longestStreak: Math.max(prev.longestStreak, prev.consecutiveDays + 1)
+      }));
+      
       // Aumenta nível baseado em dias consecutivos
       if (selectedPet) {
         setPetLevel(prev => Math.min(prev + 1, 10));
       }
     } else {
       // Atividades adicionais no mesmo dia dão pequeno boost
+      setUserStats(prev => ({
+        ...prev,
+        totalSessions: prev.totalSessions + 1,
+        totalMinutes: prev.totalMinutes + 5
+      }));
+      
       if (selectedPet) {
         setPetLevel(prev => Math.min(prev + 0.2, 10));
       }
@@ -762,6 +878,10 @@ export default function MindHug() {
 
   const handleLogout = () => {
     if (confirm("Tem certeza que deseja sair?")) {
+      // Limpar localStorage
+      localStorage.removeItem('mindHugData');
+      
+      // Resetar estados
       setScreen("register");
       setUserData({
         name: "",
@@ -772,13 +892,20 @@ export default function MindHug() {
         symptomsFrequency: "",
         country: "",
         state: "",
-        city: ""
+        city: "",
+        language: "pt-BR"
       });
       setSelectedPet(null);
       setPetLevel(1);
       setConsecutiveDays(0);
       setMissedDays(0);
       setDiaryEntries([]);
+      setUserStats({
+        consecutiveDays: 0,
+        totalSessions: 0,
+        totalMinutes: 0,
+        longestStreak: 0
+      });
       setProfileDropdownOpen(false);
     }
   };
@@ -1022,6 +1149,383 @@ export default function MindHug() {
     );
   }
 
+  // Statistics Screen
+  if (screen === "statistics") {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-950 dark:to-blue-950 transition-all duration-500">
+        <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm sticky top-0 z-10">
+          <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+            <button
+              onClick={() => setScreen("dashboard")}
+              className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+            >
+              <ChevronLeft className="w-5 h-5" />
+              <span>Voltar</span>
+            </button>
+            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Minhas Estatísticas
+            </h1>
+            <div className="w-20"></div>
+          </div>
+        </header>
+
+        <main className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 text-center">
+              <div className="text-5xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+                {userStats.consecutiveDays}
+              </div>
+              <p className="text-gray-600 dark:text-gray-400">Dias de atenção plena</p>
+              <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">série atual</p>
+            </div>
+
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 text-center">
+              <div className="text-5xl font-bold text-purple-600 dark:text-purple-400 mb-2">
+                {userStats.longestStreak}
+              </div>
+              <p className="text-gray-600 dark:text-gray-400">Dias de atenção plena</p>
+              <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">série mais longa</p>
+            </div>
+
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 text-center">
+              <div className="text-5xl font-bold text-green-600 dark:text-green-400 mb-2">
+                {userStats.totalSessions}
+              </div>
+              <p className="text-gray-600 dark:text-gray-400">Total de sessões</p>
+            </div>
+
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 text-center">
+              <div className="text-5xl font-bold text-orange-600 dark:text-orange-400 mb-2">
+                {userStats.totalMinutes}
+              </div>
+              <p className="text-gray-600 dark:text-gray-400">Minutos de atenção plena</p>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl shadow-lg p-6 text-white text-center">
+            <Sparkles className="w-12 h-12 mx-auto mb-3" />
+            <h3 className="text-xl font-bold mb-2">Continue assim!</h3>
+            <p className="text-blue-100">
+              Cada dia de prática é um passo em direção ao bem-estar. Você está fazendo um ótimo trabalho! 💙
+            </p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Subscription Screen
+  if (screen === "subscription") {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-950 dark:to-blue-950 transition-all duration-500">
+        <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm sticky top-0 z-10">
+          <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+            <button
+              onClick={() => setScreen("dashboard")}
+              className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+            >
+              <ChevronLeft className="w-5 h-5" />
+              <span>Voltar</span>
+            </button>
+            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Gerenciar Assinatura
+            </h1>
+            <div className="w-20"></div>
+          </div>
+        </header>
+
+        <main className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6">
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">
+              Seu Plano Atual
+            </h2>
+            <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+              <div>
+                <h3 className="text-xl font-bold text-blue-600 dark:text-blue-400">
+                  {subscriptionPlan === "free" && "Plano Gratuito"}
+                  {subscriptionPlan === "premium" && "Plano Premium"}
+                  {subscriptionPlan === "pro" && "Plano Pro"}
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  {subscriptionPlan === "free" && "Acesso aos recursos básicos"}
+                  {subscriptionPlan === "premium" && "R$ 19,90/mês - Recursos avançados"}
+                  {subscriptionPlan === "pro" && "R$ 39,90/mês - Todos os recursos"}
+                </p>
+              </div>
+              <CreditCard className="w-12 h-12 text-blue-600 dark:text-blue-400" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className={`bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 ${subscriptionPlan === "free" ? "ring-2 ring-blue-500" : ""}`}>
+              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">Gratuito</h3>
+              <p className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-4">R$ 0</p>
+              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400 mb-6">
+                <li>✓ Diário de humor</li>
+                <li>✓ Exercícios básicos</li>
+                <li>✓ Comunidade</li>
+                <li>✓ Pet virtual</li>
+              </ul>
+              {subscriptionPlan === "free" ? (
+                <button disabled className="w-full py-2 bg-gray-300 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-xl cursor-not-allowed">
+                  Plano Atual
+                </button>
+              ) : (
+                <button
+                  onClick={() => setSubscriptionPlan("free")}
+                  className="w-full py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
+                >
+                  Mudar para Gratuito
+                </button>
+              )}
+            </div>
+
+            <div className={`bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 ${subscriptionPlan === "premium" ? "ring-2 ring-purple-500" : ""}`}>
+              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">Premium</h3>
+              <p className="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-4">R$ 19,90<span className="text-sm">/mês</span></p>
+              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400 mb-6">
+                <li>✓ Tudo do Gratuito</li>
+                <li>✓ Meditações guiadas</li>
+                <li>✓ Sons relaxantes ilimitados</li>
+                <li>✓ Estatísticas avançadas</li>
+                <li>✓ Sem anúncios</li>
+              </ul>
+              {subscriptionPlan === "premium" ? (
+                <button disabled className="w-full py-2 bg-gray-300 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-xl cursor-not-allowed">
+                  Plano Atual
+                </button>
+              ) : (
+                <button
+                  onClick={() => setSubscriptionPlan("premium")}
+                  className="w-full py-2 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors"
+                >
+                  Assinar Premium
+                </button>
+              )}
+            </div>
+
+            <div className={`bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 ${subscriptionPlan === "pro" ? "ring-2 ring-orange-500" : ""}`}>
+              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">Pro</h3>
+              <p className="text-3xl font-bold text-orange-600 dark:text-orange-400 mb-4">R$ 39,90<span className="text-sm">/mês</span></p>
+              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400 mb-6">
+                <li>✓ Tudo do Premium</li>
+                <li>✓ Sessões com psicólogos</li>
+                <li>✓ Planos personalizados</li>
+                <li>✓ Suporte prioritário</li>
+                <li>✓ Conteúdo exclusivo</li>
+              </ul>
+              {subscriptionPlan === "pro" ? (
+                <button disabled className="w-full py-2 bg-gray-300 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-xl cursor-not-allowed">
+                  Plano Atual
+                </button>
+              ) : (
+                <button
+                  onClick={() => setSubscriptionPlan("pro")}
+                  className="w-full py-2 bg-orange-600 text-white rounded-xl hover:bg-orange-700 transition-colors"
+                >
+                  Assinar Pro
+                </button>
+              )}
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Account Settings Screen
+  if (screen === "accountSettings") {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-950 dark:to-blue-950 transition-all duration-500">
+        <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm sticky top-0 z-10">
+          <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+            <button
+              onClick={() => setScreen("dashboard")}
+              className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+            >
+              <ChevronLeft className="w-5 h-5" />
+              <span>Voltar</span>
+            </button>
+            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Configurações da Conta
+            </h1>
+            <div className="w-20"></div>
+          </div>
+        </header>
+
+        <main className="max-w-2xl mx-auto px-4 py-8 space-y-6">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 space-y-4">
+            <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">
+              Informações Pessoais
+            </h2>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <User className="w-4 h-4 inline mr-2" />
+                Nome
+              </label>
+              <input
+                type="text"
+                value={userData.name}
+                onChange={(e) => setUserData({...userData, name: e.target.value})}
+                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 focus:border-blue-400 dark:focus:border-blue-500 outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <Mail className="w-4 h-4 inline mr-2" />
+                E-mail
+              </label>
+              <input
+                type="email"
+                value={userData.email}
+                onChange={(e) => setUserData({...userData, email: e.target.value})}
+                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 focus:border-blue-400 dark:focus:border-blue-500 outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <Lock className="w-4 h-4 inline mr-2" />
+                Senha
+              </label>
+              <input
+                type="password"
+                placeholder="••••••••"
+                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 focus:border-blue-400 dark:focus:border-blue-500 outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors"
+              />
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Deixe em branco para manter a senha atual
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <MapPin className="w-4 h-4 inline mr-2" />
+                Localização
+              </label>
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  value={userData.city}
+                  onChange={(e) => setUserData({...userData, city: e.target.value})}
+                  placeholder="Cidade"
+                  className="w-full px-4 py-2 rounded-lg border-2 border-gray-200 dark:border-gray-700 focus:border-blue-400 dark:focus:border-blue-500 outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors"
+                />
+                <input
+                  type="text"
+                  value={userData.state}
+                  onChange={(e) => setUserData({...userData, state: e.target.value})}
+                  placeholder="Estado"
+                  className="w-full px-4 py-2 rounded-lg border-2 border-gray-200 dark:border-gray-700 focus:border-blue-400 dark:focus:border-blue-500 outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors"
+                />
+                <input
+                  type="text"
+                  value={userData.country}
+                  onChange={(e) => setUserData({...userData, country: e.target.value})}
+                  placeholder="País"
+                  className="w-full px-4 py-2 rounded-lg border-2 border-gray-200 dark:border-gray-700 focus:border-blue-400 dark:focus:border-blue-500 outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors"
+                />
+              </div>
+            </div>
+
+            <button
+              onClick={() => {
+                alert("Configurações salvas com sucesso!");
+                setScreen("dashboard");
+              }}
+              className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 rounded-xl font-medium hover:shadow-lg hover:scale-105 transition-all"
+            >
+              Salvar Alterações
+            </button>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Language Settings Screen
+  if (screen === "languageSettings") {
+    const filteredLanguages = availableLanguages.filter(lang =>
+      lang.name.toLowerCase().includes(languageSearch.toLowerCase()) ||
+      lang.code.toLowerCase().includes(languageSearch.toLowerCase())
+    );
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-950 dark:to-blue-950 transition-all duration-500">
+        <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm sticky top-0 z-10">
+          <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+            <button
+              onClick={() => setScreen("dashboard")}
+              className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+            >
+              <ChevronLeft className="w-5 h-5" />
+              <span>Voltar</span>
+            </button>
+            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Idioma
+            </h1>
+            <div className="w-20"></div>
+          </div>
+        </header>
+
+        <main className="max-w-2xl mx-auto px-4 py-8 space-y-6">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6">
+            <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">
+              Escolha seu idioma
+            </h2>
+
+            <div className="relative mb-6">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Pesquisar idioma..."
+                value={languageSearch}
+                onChange={(e) => setLanguageSearch(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 focus:border-blue-400 dark:focus:border-blue-500 outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors"
+              />
+            </div>
+
+            <div className="space-y-2 max-h-96 overflow-y-auto">
+              {filteredLanguages.map((lang) => (
+                <button
+                  key={lang.code}
+                  onClick={() => {
+                    setUserData({...userData, language: lang.code});
+                    alert(`Idioma alterado para ${lang.name}`);
+                    setScreen("dashboard");
+                  }}
+                  className={`w-full flex items-center gap-3 p-4 rounded-xl transition-all ${
+                    userData.language === lang.code
+                      ? "bg-blue-100 dark:bg-blue-900/30 ring-2 ring-blue-500"
+                      : "hover:bg-gray-100 dark:hover:bg-gray-800"
+                  }`}
+                >
+                  <span className="text-3xl">{lang.flag}</span>
+                  <span className="text-left flex-1 text-gray-800 dark:text-gray-200 font-medium">
+                    {lang.name}
+                  </span>
+                  {userData.language === lang.code && (
+                    <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
+                      <span className="text-white text-xs">✓</span>
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {filteredLanguages.length === 0 && (
+              <p className="text-center text-gray-500 dark:text-gray-400 py-8">
+                Nenhum idioma encontrado
+              </p>
+            )}
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   // Dashboard Screen
   if (screen === "dashboard") {
     return (
@@ -1046,7 +1550,7 @@ export default function MindHug() {
               </button>
               
               {/* Profile Dropdown */}
-              <div className="relative">
+              <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
                   className="flex items-center gap-2 p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
@@ -1067,7 +1571,7 @@ export default function MindHug() {
                       <button
                         onClick={() => {
                           setProfileDropdownOpen(false);
-                          alert("📊 Estatísticas:\n\n🔥 Dias consecutivos: " + consecutiveDays + "\n⭐ Nível do pet: " + Math.floor(petLevel) + "\n📖 Entradas no diário: " + diaryEntries.length);
+                          setScreen("statistics");
                         }}
                         className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
                       >
@@ -1078,7 +1582,7 @@ export default function MindHug() {
                       <button
                         onClick={() => {
                           setProfileDropdownOpen(false);
-                          alert("💳 Gerenciar Assinatura\n\nVocê está no plano gratuito.\nEm breve: recursos premium!");
+                          setScreen("subscription");
                         }}
                         className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
                       >
@@ -1089,7 +1593,7 @@ export default function MindHug() {
                       <button
                         onClick={() => {
                           setProfileDropdownOpen(false);
-                          alert("⚙️ Configurações da Conta\n\nNome: " + userData.name + "\nEmail: " + userData.email + "\nLocalização: " + userData.city + ", " + userData.state);
+                          setScreen("accountSettings");
                         }}
                         className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
                       >
@@ -1100,7 +1604,7 @@ export default function MindHug() {
                       <button
                         onClick={() => {
                           setProfileDropdownOpen(false);
-                          alert("🌍 Idioma\n\nAtual: Português (BR)\nEm breve: mais idiomas!");
+                          setScreen("languageSettings");
                         }}
                         className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
                       >
@@ -1292,7 +1796,6 @@ export default function MindHug() {
     );
   }
 
-  // [RESTO DO CÓDIGO PERMANECE IGUAL - Anxiety Crisis, Sleep Improvement, Daily Habits, Gratitude, Meditation, Breathing, Sounds, Diary, Community, Self Care, Tips screens...]
-  
-  return null;
+  // Placeholder para outras telas (manter código existente)
+  return <div>Tela em desenvolvimento</div>;
 }
