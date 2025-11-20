@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { Heart, BookOpen, Users, Lightbulb, Settings, Moon, Sun, Dog, Cat, Sparkles, Mail, Lock, User, MapPin, Globe, ChevronLeft, ChevronRight, Play, Pause, Volume2, LogOut, BarChart3, CreditCard, Languages, Search } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Heart, BookOpen, Users, Lightbulb, Settings, Moon, Sun, Dog, Cat, Sparkles, Mail, Lock, User, MapPin, Globe, ChevronLeft, ChevronRight, Play, Pause, Volume2 } from "lucide-react";
 
 type Mood = "happy" | "neutral" | "sad" | "crying" | "angry" | null;
 type Pet = "dog" | "cat" | null;
-type Screen = "register" | "petSelection" | "dashboard" | "diary" | "community" | "selfcare" | "tips" | "settings" | "relaxingSounds" | "breathingExercises" | "breathingSession" | "meditationList" | "meditationSession" | "gratitudeExercises" | "anxietyCrisis" | "sleepImprovement" | "dailyHabits" | "statistics" | "subscription" | "accountSettings" | "languageSettings";
+type Screen = "register" | "petSelection" | "dashboard" | "diary" | "community" | "selfcare" | "tips" | "settings" | "relaxingSounds" | "breathingExercises" | "breathingSession" | "meditationList" | "meditationSession" | "gratitudeExercises";
 
 interface UserData {
   name: string;
@@ -17,7 +17,6 @@ interface UserData {
   country: string;
   state: string;
   city: string;
-  language: string;
 }
 
 interface DiaryEntry {
@@ -71,13 +70,6 @@ interface GratitudeExercise {
   description: string;
 }
 
-interface UserStats {
-  consecutiveDays: number;
-  totalSessions: number;
-  totalMinutes: number;
-  longestStreak: number;
-}
-
 export default function MindHug() {
   // ✅ TODOS OS HOOKS NO TOPO (NUNCA CONDICIONAIS)
   const [screen, setScreen] = useState<Screen>("register");
@@ -90,8 +82,7 @@ export default function MindHug() {
     symptomsFrequency: "",
     country: "",
     state: "",
-    city: "",
-    language: "pt-BR"
+    city: ""
   });
   const [currentMood, setCurrentMood] = useState<Mood>(null);
   const [selectedPet, setSelectedPet] = useState<Pet>(null);
@@ -128,40 +119,6 @@ export default function MindHug() {
   const [selectedMeditation, setSelectedMeditation] = useState<MeditationExercise | null>(null);
   const [meditationTimeLeft, setMeditationTimeLeft] = useState(0);
   const [meditationActive, setMeditationActive] = useState(false);
-
-  // Estado para dropdown de perfil
-  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Estados para estatísticas do usuário
-  const [userStats, setUserStats] = useState<UserStats>({
-    consecutiveDays: 0,
-    totalSessions: 0,
-    totalMinutes: 0,
-    longestStreak: 0
-  });
-
-  // Estados para configurações de assinatura
-  const [subscriptionPlan, setSubscriptionPlan] = useState<"free" | "premium" | "pro">("free");
-
-  // Estado para busca de idioma
-  const [languageSearch, setLanguageSearch] = useState("");
-
-  // Lista de idiomas disponíveis
-  const availableLanguages = [
-    { code: "pt-BR", name: "Português (Brasil)", flag: "🇧🇷" },
-    { code: "en-US", name: "English (US)", flag: "🇺🇸" },
-    { code: "es-ES", name: "Español", flag: "🇪🇸" },
-    { code: "fr-FR", name: "Français", flag: "🇫🇷" },
-    { code: "de-DE", name: "Deutsch", flag: "🇩🇪" },
-    { code: "it-IT", name: "Italiano", flag: "🇮🇹" },
-    { code: "ja-JP", name: "日本語", flag: "🇯🇵" },
-    { code: "ko-KR", name: "한국어", flag: "🇰🇷" },
-    { code: "zh-CN", name: "中文 (简体)", flag: "🇨🇳" },
-    { code: "ru-RU", name: "Русский", flag: "🇷🇺" },
-    { code: "ar-SA", name: "العربية", flag: "🇸🇦" },
-    { code: "hi-IN", name: "हिन्दी", flag: "🇮🇳" }
-  ];
 
   // 50 frases motivacionais que mudam todo dia
   const motivationalQuotes = [
@@ -608,61 +565,6 @@ export default function MindHug() {
     { id: "35", category: "✨ Criativos e simbólicos", icon: "📆", title: "Desafio dos 21 dias", description: "Durante 21 dias seguidos, anote 3 coisas novas pelas quais é grato" }
   ];
 
-  // ✅ PERSISTÊNCIA DE DADOS COM LOCALSTORAGE
-  useEffect(() => {
-    // Carregar dados salvos ao iniciar
-    const savedData = localStorage.getItem('mindHugData');
-    if (savedData) {
-      try {
-        const parsed = JSON.parse(savedData);
-        if (parsed.userData) setUserData(parsed.userData);
-        if (parsed.selectedPet) setSelectedPet(parsed.selectedPet);
-        if (parsed.petLevel) setPetLevel(parsed.petLevel);
-        if (parsed.consecutiveDays) setConsecutiveDays(parsed.consecutiveDays);
-        if (parsed.userStats) setUserStats(parsed.userStats);
-        if (parsed.subscriptionPlan) setSubscriptionPlan(parsed.subscriptionPlan);
-        if (parsed.diaryEntries) setDiaryEntries(parsed.diaryEntries);
-        if (parsed.lastActivityDate) setLastActivityDate(parsed.lastActivityDate);
-        if (parsed.screen && parsed.screen !== 'register') setScreen(parsed.screen);
-      } catch (error) {
-        console.error('Erro ao carregar dados:', error);
-      }
-    }
-  }, []);
-
-  // Salvar dados sempre que mudarem
-  useEffect(() => {
-    const dataToSave = {
-      userData,
-      selectedPet,
-      petLevel,
-      consecutiveDays,
-      userStats,
-      subscriptionPlan,
-      diaryEntries,
-      lastActivityDate,
-      screen
-    };
-    localStorage.setItem('mindHugData', JSON.stringify(dataToSave));
-  }, [userData, selectedPet, petLevel, consecutiveDays, userStats, subscriptionPlan, diaryEntries, lastActivityDate, screen]);
-
-  // ✅ FECHAR DROPDOWN AO CLICAR FORA
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setProfileDropdownOpen(false);
-      }
-    }
-
-    if (profileDropdownOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [profileDropdownOpen]);
-
   // Sistema de nível do pet baseado em dias consecutivos
   useEffect(() => {
     const today = new Date().toDateString();
@@ -675,11 +577,6 @@ export default function MindHug() {
       if (lastActivityDate === yesterdayStr) {
         // Atividade no dia anterior - mantém sequência
         setConsecutiveDays(prev => prev + 1);
-        setUserStats(prev => ({
-          ...prev,
-          consecutiveDays: prev.consecutiveDays + 1,
-          longestStreak: Math.max(prev.longestStreak, prev.consecutiveDays + 1)
-        }));
         setMissedDays(0);
       } else {
         // Pulou dia(s)
@@ -690,7 +587,6 @@ export default function MindHug() {
         if (missedDays >= 3) {
           setPetLevel(1);
           setConsecutiveDays(0);
-          setUserStats(prev => ({ ...prev, consecutiveDays: 0 }));
           setMissedDays(0);
         }
       }
@@ -786,27 +682,12 @@ export default function MindHug() {
       setLastActivityDate(today);
       setMissedDays(0);
       
-      // Atualiza estatísticas
-      setUserStats(prev => ({
-        ...prev,
-        consecutiveDays: prev.consecutiveDays + 1,
-        totalSessions: prev.totalSessions + 1,
-        totalMinutes: prev.totalMinutes + 5,
-        longestStreak: Math.max(prev.longestStreak, prev.consecutiveDays + 1)
-      }));
-      
       // Aumenta nível baseado em dias consecutivos
       if (selectedPet) {
         setPetLevel(prev => Math.min(prev + 1, 10));
       }
     } else {
       // Atividades adicionais no mesmo dia dão pequeno boost
-      setUserStats(prev => ({
-        ...prev,
-        totalSessions: prev.totalSessions + 1,
-        totalMinutes: prev.totalMinutes + 5
-      }));
-      
       if (selectedPet) {
         setPetLevel(prev => Math.min(prev + 0.2, 10));
       }
@@ -874,40 +755,6 @@ export default function MindHug() {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const handleLogout = () => {
-    if (confirm("Tem certeza que deseja sair?")) {
-      // Limpar localStorage
-      localStorage.removeItem('mindHugData');
-      
-      // Resetar estados
-      setScreen("register");
-      setUserData({
-        name: "",
-        email: "",
-        password: "",
-        depressionLevel: "",
-        anxietyLevel: "",
-        symptomsFrequency: "",
-        country: "",
-        state: "",
-        city: "",
-        language: "pt-BR"
-      });
-      setSelectedPet(null);
-      setPetLevel(1);
-      setConsecutiveDays(0);
-      setMissedDays(0);
-      setDiaryEntries([]);
-      setUserStats({
-        consecutiveDays: 0,
-        totalSessions: 0,
-        totalMinutes: 0,
-        longestStreak: 0
-      });
-      setProfileDropdownOpen(false);
-    }
   };
 
   // Register Screen (PRIMEIRA PÁGINA)
@@ -1149,383 +996,6 @@ export default function MindHug() {
     );
   }
 
-  // Statistics Screen
-  if (screen === "statistics") {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-950 dark:to-blue-950 transition-all duration-500">
-        <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm sticky top-0 z-10">
-          <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-            <button
-              onClick={() => setScreen("dashboard")}
-              className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
-            >
-              <ChevronLeft className="w-5 h-5" />
-              <span>Voltar</span>
-            </button>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Minhas Estatísticas
-            </h1>
-            <div className="w-20"></div>
-          </div>
-        </header>
-
-        <main className="max-w-4xl mx-auto px-4 py-8 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 text-center">
-              <div className="text-5xl font-bold text-blue-600 dark:text-blue-400 mb-2">
-                {userStats.consecutiveDays}
-              </div>
-              <p className="text-gray-600 dark:text-gray-400">Dias de atenção plena</p>
-              <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">série atual</p>
-            </div>
-
-            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 text-center">
-              <div className="text-5xl font-bold text-purple-600 dark:text-purple-400 mb-2">
-                {userStats.longestStreak}
-              </div>
-              <p className="text-gray-600 dark:text-gray-400">Dias de atenção plena</p>
-              <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">série mais longa</p>
-            </div>
-
-            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 text-center">
-              <div className="text-5xl font-bold text-green-600 dark:text-green-400 mb-2">
-                {userStats.totalSessions}
-              </div>
-              <p className="text-gray-600 dark:text-gray-400">Total de sessões</p>
-            </div>
-
-            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 text-center">
-              <div className="text-5xl font-bold text-orange-600 dark:text-orange-400 mb-2">
-                {userStats.totalMinutes}
-              </div>
-              <p className="text-gray-600 dark:text-gray-400">Minutos de atenção plena</p>
-            </div>
-          </div>
-
-          <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl shadow-lg p-6 text-white text-center">
-            <Sparkles className="w-12 h-12 mx-auto mb-3" />
-            <h3 className="text-xl font-bold mb-2">Continue assim!</h3>
-            <p className="text-blue-100">
-              Cada dia de prática é um passo em direção ao bem-estar. Você está fazendo um ótimo trabalho! 💙
-            </p>
-          </div>
-        </main>
-      </div>
-    );
-  }
-
-  // Subscription Screen
-  if (screen === "subscription") {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-950 dark:to-blue-950 transition-all duration-500">
-        <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm sticky top-0 z-10">
-          <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-            <button
-              onClick={() => setScreen("dashboard")}
-              className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
-            >
-              <ChevronLeft className="w-5 h-5" />
-              <span>Voltar</span>
-            </button>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Gerenciar Assinatura
-            </h1>
-            <div className="w-20"></div>
-          </div>
-        </header>
-
-        <main className="max-w-4xl mx-auto px-4 py-8 space-y-6">
-          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6">
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">
-              Seu Plano Atual
-            </h2>
-            <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
-              <div>
-                <h3 className="text-xl font-bold text-blue-600 dark:text-blue-400">
-                  {subscriptionPlan === "free" && "Plano Gratuito"}
-                  {subscriptionPlan === "premium" && "Plano Premium"}
-                  {subscriptionPlan === "pro" && "Plano Pro"}
-                </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                  {subscriptionPlan === "free" && "Acesso aos recursos básicos"}
-                  {subscriptionPlan === "premium" && "R$ 19,90/mês - Recursos avançados"}
-                  {subscriptionPlan === "pro" && "R$ 39,90/mês - Todos os recursos"}
-                </p>
-              </div>
-              <CreditCard className="w-12 h-12 text-blue-600 dark:text-blue-400" />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className={`bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 ${subscriptionPlan === "free" ? "ring-2 ring-blue-500" : ""}`}>
-              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">Gratuito</h3>
-              <p className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-4">R$ 0</p>
-              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400 mb-6">
-                <li>✓ Diário de humor</li>
-                <li>✓ Exercícios básicos</li>
-                <li>✓ Comunidade</li>
-                <li>✓ Pet virtual</li>
-              </ul>
-              {subscriptionPlan === "free" ? (
-                <button disabled className="w-full py-2 bg-gray-300 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-xl cursor-not-allowed">
-                  Plano Atual
-                </button>
-              ) : (
-                <button
-                  onClick={() => setSubscriptionPlan("free")}
-                  className="w-full py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
-                >
-                  Mudar para Gratuito
-                </button>
-              )}
-            </div>
-
-            <div className={`bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 ${subscriptionPlan === "premium" ? "ring-2 ring-purple-500" : ""}`}>
-              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">Premium</h3>
-              <p className="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-4">R$ 19,90<span className="text-sm">/mês</span></p>
-              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400 mb-6">
-                <li>✓ Tudo do Gratuito</li>
-                <li>✓ Meditações guiadas</li>
-                <li>✓ Sons relaxantes ilimitados</li>
-                <li>✓ Estatísticas avançadas</li>
-                <li>✓ Sem anúncios</li>
-              </ul>
-              {subscriptionPlan === "premium" ? (
-                <button disabled className="w-full py-2 bg-gray-300 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-xl cursor-not-allowed">
-                  Plano Atual
-                </button>
-              ) : (
-                <button
-                  onClick={() => setSubscriptionPlan("premium")}
-                  className="w-full py-2 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors"
-                >
-                  Assinar Premium
-                </button>
-              )}
-            </div>
-
-            <div className={`bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 ${subscriptionPlan === "pro" ? "ring-2 ring-orange-500" : ""}`}>
-              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">Pro</h3>
-              <p className="text-3xl font-bold text-orange-600 dark:text-orange-400 mb-4">R$ 39,90<span className="text-sm">/mês</span></p>
-              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400 mb-6">
-                <li>✓ Tudo do Premium</li>
-                <li>✓ Sessões com psicólogos</li>
-                <li>✓ Planos personalizados</li>
-                <li>✓ Suporte prioritário</li>
-                <li>✓ Conteúdo exclusivo</li>
-              </ul>
-              {subscriptionPlan === "pro" ? (
-                <button disabled className="w-full py-2 bg-gray-300 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-xl cursor-not-allowed">
-                  Plano Atual
-                </button>
-              ) : (
-                <button
-                  onClick={() => setSubscriptionPlan("pro")}
-                  className="w-full py-2 bg-orange-600 text-white rounded-xl hover:bg-orange-700 transition-colors"
-                >
-                  Assinar Pro
-                </button>
-              )}
-            </div>
-          </div>
-        </main>
-      </div>
-    );
-  }
-
-  // Account Settings Screen
-  if (screen === "accountSettings") {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-950 dark:to-blue-950 transition-all duration-500">
-        <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm sticky top-0 z-10">
-          <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-            <button
-              onClick={() => setScreen("dashboard")}
-              className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
-            >
-              <ChevronLeft className="w-5 h-5" />
-              <span>Voltar</span>
-            </button>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Configurações da Conta
-            </h1>
-            <div className="w-20"></div>
-          </div>
-        </header>
-
-        <main className="max-w-2xl mx-auto px-4 py-8 space-y-6">
-          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 space-y-4">
-            <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">
-              Informações Pessoais
-            </h2>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                <User className="w-4 h-4 inline mr-2" />
-                Nome
-              </label>
-              <input
-                type="text"
-                value={userData.name}
-                onChange={(e) => setUserData({...userData, name: e.target.value})}
-                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 focus:border-blue-400 dark:focus:border-blue-500 outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                <Mail className="w-4 h-4 inline mr-2" />
-                E-mail
-              </label>
-              <input
-                type="email"
-                value={userData.email}
-                onChange={(e) => setUserData({...userData, email: e.target.value})}
-                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 focus:border-blue-400 dark:focus:border-blue-500 outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                <Lock className="w-4 h-4 inline mr-2" />
-                Senha
-              </label>
-              <input
-                type="password"
-                placeholder="••••••••"
-                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 focus:border-blue-400 dark:focus:border-blue-500 outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors"
-              />
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                Deixe em branco para manter a senha atual
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                <MapPin className="w-4 h-4 inline mr-2" />
-                Localização
-              </label>
-              <div className="space-y-2">
-                <input
-                  type="text"
-                  value={userData.city}
-                  onChange={(e) => setUserData({...userData, city: e.target.value})}
-                  placeholder="Cidade"
-                  className="w-full px-4 py-2 rounded-lg border-2 border-gray-200 dark:border-gray-700 focus:border-blue-400 dark:focus:border-blue-500 outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors"
-                />
-                <input
-                  type="text"
-                  value={userData.state}
-                  onChange={(e) => setUserData({...userData, state: e.target.value})}
-                  placeholder="Estado"
-                  className="w-full px-4 py-2 rounded-lg border-2 border-gray-200 dark:border-gray-700 focus:border-blue-400 dark:focus:border-blue-500 outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors"
-                />
-                <input
-                  type="text"
-                  value={userData.country}
-                  onChange={(e) => setUserData({...userData, country: e.target.value})}
-                  placeholder="País"
-                  className="w-full px-4 py-2 rounded-lg border-2 border-gray-200 dark:border-gray-700 focus:border-blue-400 dark:focus:border-blue-500 outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors"
-                />
-              </div>
-            </div>
-
-            <button
-              onClick={() => {
-                alert("Configurações salvas com sucesso!");
-                setScreen("dashboard");
-              }}
-              className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 rounded-xl font-medium hover:shadow-lg hover:scale-105 transition-all"
-            >
-              Salvar Alterações
-            </button>
-          </div>
-        </main>
-      </div>
-    );
-  }
-
-  // Language Settings Screen
-  if (screen === "languageSettings") {
-    const filteredLanguages = availableLanguages.filter(lang =>
-      lang.name.toLowerCase().includes(languageSearch.toLowerCase()) ||
-      lang.code.toLowerCase().includes(languageSearch.toLowerCase())
-    );
-
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-950 dark:to-blue-950 transition-all duration-500">
-        <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm sticky top-0 z-10">
-          <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-            <button
-              onClick={() => setScreen("dashboard")}
-              className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
-            >
-              <ChevronLeft className="w-5 h-5" />
-              <span>Voltar</span>
-            </button>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Idioma
-            </h1>
-            <div className="w-20"></div>
-          </div>
-        </header>
-
-        <main className="max-w-2xl mx-auto px-4 py-8 space-y-6">
-          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6">
-            <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">
-              Escolha seu idioma
-            </h2>
-
-            <div className="relative mb-6">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Pesquisar idioma..."
-                value={languageSearch}
-                onChange={(e) => setLanguageSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 focus:border-blue-400 dark:focus:border-blue-500 outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors"
-              />
-            </div>
-
-            <div className="space-y-2 max-h-96 overflow-y-auto">
-              {filteredLanguages.map((lang) => (
-                <button
-                  key={lang.code}
-                  onClick={() => {
-                    setUserData({...userData, language: lang.code});
-                    alert(`Idioma alterado para ${lang.name}`);
-                    setScreen("dashboard");
-                  }}
-                  className={`w-full flex items-center gap-3 p-4 rounded-xl transition-all ${
-                    userData.language === lang.code
-                      ? "bg-blue-100 dark:bg-blue-900/30 ring-2 ring-blue-500"
-                      : "hover:bg-gray-100 dark:hover:bg-gray-800"
-                  }`}
-                >
-                  <span className="text-3xl">{lang.flag}</span>
-                  <span className="text-left flex-1 text-gray-800 dark:text-gray-200 font-medium">
-                    {lang.name}
-                  </span>
-                  {userData.language === lang.code && (
-                    <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
-                      <span className="text-white text-xs">✓</span>
-                    </div>
-                  )}
-                </button>
-              ))}
-            </div>
-
-            {filteredLanguages.length === 0 && (
-              <p className="text-center text-gray-500 dark:text-gray-400 py-8">
-                Nenhum idioma encontrado
-              </p>
-            )}
-          </div>
-        </main>
-      </div>
-    );
-  }
-
   // Dashboard Screen
   if (screen === "dashboard") {
     return (
@@ -1541,91 +1011,12 @@ export default function MindHug() {
                 MindHug
               </h1>
             </div>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setDarkMode(!darkMode)}
-                className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
-              >
-                {darkMode ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-gray-600" />}
-              </button>
-              
-              {/* Profile Dropdown */}
-              <div className="relative" ref={dropdownRef}>
-                <button
-                  onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                  className="flex items-center gap-2 p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
-                >
-                  <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                    {userData.name[0].toUpperCase()}
-                  </div>
-                </button>
-
-                {profileDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden z-20">
-                    <div className="p-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white">
-                      <p className="font-bold">{userData.name}</p>
-                      <p className="text-xs text-blue-100">{userData.email}</p>
-                    </div>
-                    
-                    <div className="p-2">
-                      <button
-                        onClick={() => {
-                          setProfileDropdownOpen(false);
-                          setScreen("statistics");
-                        }}
-                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
-                      >
-                        <BarChart3 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                        <span className="text-gray-800 dark:text-gray-200">Minhas Estatísticas</span>
-                      </button>
-                      
-                      <button
-                        onClick={() => {
-                          setProfileDropdownOpen(false);
-                          setScreen("subscription");
-                        }}
-                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
-                      >
-                        <CreditCard className="w-5 h-5 text-green-600 dark:text-green-400" />
-                        <span className="text-gray-800 dark:text-gray-200">Gerenciar Assinatura</span>
-                      </button>
-                      
-                      <button
-                        onClick={() => {
-                          setProfileDropdownOpen(false);
-                          setScreen("accountSettings");
-                        }}
-                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
-                      >
-                        <Settings className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                        <span className="text-gray-800 dark:text-gray-200">Configurações da Conta</span>
-                      </button>
-                      
-                      <button
-                        onClick={() => {
-                          setProfileDropdownOpen(false);
-                          setScreen("languageSettings");
-                        }}
-                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
-                      >
-                        <Languages className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                        <span className="text-gray-800 dark:text-gray-200">Idioma</span>
-                      </button>
-                      
-                      <div className="border-t border-gray-200 dark:border-gray-700 my-2"></div>
-                      
-                      <button
-                        onClick={handleLogout}
-                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-left"
-                      >
-                        <LogOut className="w-5 h-5 text-red-600 dark:text-red-400" />
-                        <span className="text-red-600 dark:text-red-400 font-medium">Fazer Logout</span>
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+            >
+              {darkMode ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-gray-600" />}
+            </button>
           </div>
         </header>
 
@@ -1796,6 +1187,986 @@ export default function MindHug() {
     );
   }
 
-  // Placeholder para outras telas (manter código existente)
-  return <div>Tela em desenvolvimento</div>;
+  // Gratitude Exercises Screen
+  if (screen === "gratitudeExercises") {
+    // Agrupar exercícios por categoria
+    const groupedExercises = gratitudeExercises.reduce((acc, exercise) => {
+      if (!acc[exercise.category]) {
+        acc[exercise.category] = [];
+      }
+      acc[exercise.category].push(exercise);
+      return acc;
+    }, {} as Record<string, GratitudeExercise[]>);
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-gray-900 dark:via-green-950 dark:to-emerald-950">
+        <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm sticky top-0 z-10">
+          <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+            <button
+              onClick={() => setScreen("selfcare")}
+              className="text-green-600 dark:text-green-400 hover:underline"
+            >
+              ← Voltar
+            </button>
+            <h1 className="text-xl font-bold text-gray-800 dark:text-gray-100">Exercícios de Gratidão</h1>
+            <div className="w-16" />
+          </div>
+        </header>
+
+        <main className="max-w-6xl mx-auto px-4 py-8 space-y-6">
+          <div className="bg-gradient-to-r from-green-400 to-emerald-500 rounded-3xl shadow-lg p-8 text-white text-center">
+            <div className="text-5xl mb-4">🌿</div>
+            <h2 className="text-2xl font-bold mb-2">35 Exercícios de Gratidão</h2>
+            <p className="text-green-50">
+              Práticas simples para cultivar gratidão e transformar sua perspectiva
+            </p>
+          </div>
+
+          {Object.entries(groupedExercises).map(([category, exercises]) => (
+            <div key={category} className="space-y-4">
+              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+                {category}
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {exercises.map((exercise) => (
+                  <button
+                    key={exercise.id}
+                    onClick={() => {
+                      completeActivity();
+                      alert(`✨ ${exercise.title}\n\n${exercise.description}\n\nÓtimo trabalho! Continue praticando gratidão! 🌟`);
+                    }}
+                    className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 hover:shadow-xl hover:scale-105 transition-all text-left"
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className="text-4xl">{exercise.icon}</div>
+                      <div className="flex-1">
+                        <h4 className="font-bold text-gray-800 dark:text-gray-100 mb-2">
+                          {exercise.title}
+                        </h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {exercise.description}
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+
+          <div className="bg-green-50 dark:bg-green-950/30 border-2 border-green-200 dark:border-green-800 rounded-2xl p-6 text-center">
+            <p className="text-sm text-green-700 dark:text-green-400">
+              💡 <strong>Dica:</strong> Comece com um exercício por dia. A gratidão é uma prática - 
+              quanto mais você cultiva, mais natural se torna reconhecer as coisas boas da vida.
+            </p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Meditation Session Screen
+  if (screen === "meditationSession" && selectedMeditation) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-100 to-rose-100 dark:from-gray-900 dark:via-purple-950 dark:to-pink-950 flex items-center justify-center p-4">
+        <div className="max-w-2xl w-full bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-3xl shadow-2xl p-12 text-center space-y-8">
+          <div className="text-6xl mb-4">{selectedMeditation.icon}</div>
+          
+          <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-100">
+            {selectedMeditation.title}
+          </h2>
+          
+          <div className="text-7xl font-bold text-purple-600 dark:text-purple-400">
+            {formatTime(meditationTimeLeft)}
+          </div>
+
+          <div className="bg-purple-50 dark:bg-purple-950/30 rounded-2xl p-6 space-y-3">
+            <p className="text-sm font-semibold text-purple-700 dark:text-purple-400 mb-3">
+              Siga os passos:
+            </p>
+            <ul className="space-y-2">
+              {selectedMeditation.steps.map((step, index) => (
+                <li key={index} className="text-sm text-gray-700 dark:text-gray-300 flex items-start gap-2">
+                  <span className="text-purple-500 font-bold">{index + 1}.</span>
+                  <span>{step}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="flex gap-4 justify-center">
+            {!meditationActive ? (
+              <button
+                onClick={() => setMeditationActive(true)}
+                className="bg-gradient-to-r from-purple-500 to-pink-600 text-white py-4 px-8 rounded-2xl font-bold text-lg hover:shadow-lg hover:scale-105 transition-all flex items-center gap-2"
+              >
+                <Play className="w-6 h-6" />
+                Começar
+              </button>
+            ) : (
+              <button
+                onClick={() => setMeditationActive(false)}
+                className="bg-gradient-to-r from-orange-500 to-red-600 text-white py-4 px-8 rounded-2xl font-bold text-lg hover:shadow-lg hover:scale-105 transition-all flex items-center gap-2"
+              >
+                <Pause className="w-6 h-6" />
+                Pausar
+              </button>
+            )}
+            
+            <button
+              onClick={() => {
+                setMeditationActive(false);
+                setScreen("meditationList");
+              }}
+              className="bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-200 py-4 px-8 rounded-2xl font-bold text-lg hover:shadow-lg hover:scale-105 transition-all"
+            >
+              Voltar
+            </button>
+          </div>
+
+          <p className="text-xs text-gray-500 dark:text-gray-400 italic">
+            {selectedMeditation.icon} {selectedMeditation.tip}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Meditation List Screen
+  if (screen === "meditationList") {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-rose-50 dark:from-gray-900 dark:via-purple-950 dark:to-pink-950">
+        <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm sticky top-0 z-10">
+          <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+            <button
+              onClick={() => setScreen("selfcare")}
+              className="text-purple-600 dark:text-purple-400 hover:underline"
+            >
+              ← Voltar
+            </button>
+            <h1 className="text-xl font-bold text-gray-800 dark:text-gray-100">Meditação Guiada</h1>
+            <div className="w-16" />
+          </div>
+        </header>
+
+        <main className="max-w-6xl mx-auto px-4 py-8 space-y-6">
+          <div className="bg-gradient-to-r from-purple-400 to-pink-500 rounded-3xl shadow-lg p-8 text-white text-center">
+            <div className="text-5xl mb-4">🕯️</div>
+            <h2 className="text-2xl font-bold mb-2">Meditações Guiadas</h2>
+            <p className="text-purple-50">
+              Práticas simples para acalmar a mente e encontrar paz interior
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {meditationExercises.map((meditation) => (
+              <div
+                key={meditation.id}
+                className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all"
+              >
+                <div className="flex items-start gap-4 mb-4">
+                  <div className="text-4xl">{meditation.icon}</div>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-gray-800 dark:text-gray-100 mb-1">
+                      {meditation.title}
+                    </h3>
+                    <p className="text-xs text-purple-600 dark:text-purple-400 mb-1">
+                      {meditation.duration}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-purple-50 dark:bg-purple-950/30 rounded-lg p-3 mb-4">
+                  <p className="text-xs font-semibold text-purple-700 dark:text-purple-400 mb-2">
+                    Objetivo:
+                  </p>
+                  <p className="text-xs text-gray-700 dark:text-gray-300">
+                    {meditation.objective}
+                  </p>
+                </div>
+
+                <div className="space-y-2 mb-4">
+                  <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    Como fazer:
+                  </p>
+                  <ul className="space-y-1">
+                    {meditation.steps.slice(0, 3).map((step, index) => (
+                      <li key={index} className="text-xs text-gray-600 dark:text-gray-400 flex items-start gap-2">
+                        <span className="text-purple-500 font-bold">•</span>
+                        <span>{step}</span>
+                      </li>
+                    ))}
+                    {meditation.steps.length > 3 && (
+                      <li className="text-xs text-purple-600 dark:text-purple-400 italic">
+                        + {meditation.steps.length - 3} passos...
+                      </li>
+                    )}
+                  </ul>
+                </div>
+
+                <button
+                  onClick={() => startMeditationSession(meditation)}
+                  className="w-full bg-gradient-to-r from-purple-500 to-pink-600 text-white py-2 px-4 rounded-xl font-medium hover:shadow-lg hover:scale-105 transition-all"
+                >
+                  Começar
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <div className="bg-purple-50 dark:bg-purple-950/30 border-2 border-purple-200 dark:border-purple-800 rounded-2xl p-6 text-center">
+            <p className="text-sm text-purple-700 dark:text-purple-400">
+              💡 <strong>Dica:</strong> Encontre um lugar tranquilo, sente-se confortavelmente e 
+              permita-se estar presente. A meditação é uma prática - quanto mais você faz, mais natural se torna.
+            </p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Breathing Session Screen - NOVA TELA COM TIMER DE 5 MINUTOS
+  if (screen === "breathingSession" && selectedExercise) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 dark:from-gray-900 dark:via-indigo-950 dark:to-purple-950 flex items-center justify-center p-4">
+        <div className="max-w-2xl w-full bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-3xl shadow-2xl p-12 text-center space-y-8">
+          <div className="text-6xl mb-4">{selectedExercise.icon}</div>
+          
+          <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-100">
+            {selectedExercise.title}
+          </h2>
+          
+          <div className="text-7xl font-bold text-indigo-600 dark:text-indigo-400">
+            {formatTime(sessionTimeLeft)}
+          </div>
+
+          <div className="bg-indigo-50 dark:bg-indigo-950/30 rounded-2xl p-6 space-y-3">
+            <p className="text-sm font-semibold text-indigo-700 dark:text-indigo-400 mb-3">
+              Siga os passos:
+            </p>
+            <ul className="space-y-2">
+              {selectedExercise.steps.map((step, index) => (
+                <li key={index} className="text-sm text-gray-700 dark:text-gray-300 flex items-start gap-2">
+                  <span className="text-indigo-500 font-bold">{index + 1}.</span>
+                  <span>{step}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="flex gap-4 justify-center">
+            {!sessionActive ? (
+              <button
+                onClick={() => setSessionActive(true)}
+                className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-4 px-8 rounded-2xl font-bold text-lg hover:shadow-lg hover:scale-105 transition-all flex items-center gap-2"
+              >
+                <Play className="w-6 h-6" />
+                Começar
+              </button>
+            ) : (
+              <button
+                onClick={() => setSessionActive(false)}
+                className="bg-gradient-to-r from-orange-500 to-red-600 text-white py-4 px-8 rounded-2xl font-bold text-lg hover:shadow-lg hover:scale-105 transition-all flex items-center gap-2"
+              >
+                <Pause className="w-6 h-6" />
+                Pausar
+              </button>
+            )}
+            
+            <button
+              onClick={() => {
+                setSessionActive(false);
+                setScreen("breathingExercises");
+              }}
+              className="bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-200 py-4 px-8 rounded-2xl font-bold text-lg hover:shadow-lg hover:scale-105 transition-all"
+            >
+              Voltar
+            </button>
+          </div>
+
+          <p className="text-xs text-gray-500 dark:text-gray-400 italic">
+            {selectedExercise.icon} {selectedExercise.tip}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Breathing Exercises Screen
+  if (screen === "breathingExercises") {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-indigo-950 dark:to-purple-950">
+        <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm sticky top-0 z-10">
+          <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+            <button
+              onClick={() => setScreen("selfcare")}
+              className="text-indigo-600 dark:text-indigo-400 hover:underline"
+            >
+              ← Voltar
+            </button>
+            <h1 className="text-xl font-bold text-gray-800 dark:text-gray-100">Respiração Guiada</h1>
+            <div className="w-16" />
+          </div>
+        </header>
+
+        <main className="max-w-6xl mx-auto px-4 py-8 space-y-6">
+          <div className="bg-gradient-to-r from-indigo-400 to-purple-500 rounded-3xl shadow-lg p-8 text-white text-center">
+            <div className="text-5xl mb-4">🧘</div>
+            <h2 className="text-2xl font-bold mb-2">Exercícios de Respiração</h2>
+            <p className="text-indigo-50">
+              Técnicas comprovadas para acalmar a mente e reduzir ansiedade
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {breathingExercises.map((exercise) => (
+              <div
+                key={exercise.id}
+                className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all"
+              >
+                <div className="flex items-start gap-4 mb-4">
+                  <div className="text-4xl">{exercise.icon}</div>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-gray-800 dark:text-gray-100 mb-1">
+                      {exercise.title}
+                    </h3>
+                    <p className="text-xs text-indigo-600 dark:text-indigo-400 mb-1">
+                      {exercise.type}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {exercise.duration}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-2 mb-4">
+                  <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    Como fazer:
+                  </p>
+                  <ul className="space-y-1">
+                    {exercise.steps.map((step, index) => (
+                      <li key={index} className="text-xs text-gray-600 dark:text-gray-400 flex items-start gap-2">
+                        <span className="text-indigo-500 font-bold">•</span>
+                        <span>{step}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="bg-indigo-50 dark:bg-indigo-950/30 rounded-lg p-3 mb-4">
+                  <p className="text-xs text-indigo-700 dark:text-indigo-400">
+                    {exercise.icon} {exercise.tip}
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => startBreathingSession(exercise)}
+                  className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-2 px-4 rounded-xl font-medium hover:shadow-lg hover:scale-105 transition-all"
+                >
+                  Começar
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <div className="bg-indigo-50 dark:bg-indigo-950/30 border-2 border-indigo-200 dark:border-indigo-800 rounded-2xl p-6 text-center">
+            <p className="text-sm text-indigo-700 dark:text-indigo-400">
+              💡 <strong>Dica:</strong> Pratique em um ambiente tranquilo. Sente-se confortavelmente, 
+              feche os olhos e concentre-se apenas na sua respiração. Com o tempo, ficará mais fácil!
+            </p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Relaxing Sounds Screen
+  if (screen === "relaxingSounds") {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-cyan-950 dark:to-blue-950">
+        <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm sticky top-0 z-10">
+          <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+            <button
+              onClick={() => setScreen("selfcare")}
+              className="text-cyan-600 dark:text-cyan-400 hover:underline"
+            >
+              ← Voltar
+            </button>
+            <h1 className="text-xl font-bold text-gray-800 dark:text-gray-100">Áudios Relaxantes</h1>
+            <div className="w-16" />
+          </div>
+        </header>
+
+        <main className="max-w-6xl mx-auto px-4 py-8 space-y-6">
+          <div className="bg-gradient-to-r from-cyan-400 to-blue-500 rounded-3xl shadow-lg p-8 text-white text-center">
+            <Volume2 className="w-12 h-12 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold mb-2">Sons da Natureza</h2>
+            <p className="text-cyan-50">
+              Escolha um som relaxante e deixe a natureza acalmar sua mente
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {relaxingSounds.map((sound) => (
+              <div
+                key={sound.id}
+                className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="text-5xl">{sound.icon}</div>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-gray-800 dark:text-gray-100 mb-1">
+                      {sound.title}
+                    </h3>
+                    <p className="text-xs text-cyan-600 dark:text-cyan-400 mb-2">
+                      {sound.duration}
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                      {sound.description}
+                    </p>
+                    <button
+                      onClick={() => toggleSound(sound.id)}
+                      className={`w-full flex items-center justify-center gap-2 py-2 px-4 rounded-xl font-medium transition-all ${
+                        playingSound === sound.id
+                          ? "bg-gradient-to-r from-red-500 to-pink-600 text-white hover:shadow-lg"
+                          : "bg-gradient-to-r from-cyan-500 to-blue-600 text-white hover:shadow-lg hover:scale-105"
+                      }`}
+                    >
+                      {playingSound === sound.id ? (
+                        <>
+                          <Pause className="w-4 h-4" />
+                          Pausar
+                        </>
+                      ) : (
+                        <>
+                          <Play className="w-4 h-4" />
+                          Reproduzir
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="bg-cyan-50 dark:bg-cyan-950/30 border-2 border-cyan-200 dark:border-cyan-800 rounded-2xl p-6 text-center">
+            <p className="text-sm text-cyan-700 dark:text-cyan-400">
+              💡 <strong>Dica:</strong> Use fones de ouvido para uma experiência mais imersiva. 
+              Feche os olhos, respire profundamente e deixe os sons da natureza te guiarem.
+            </p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Diary Screen - FORMATO LIVRO COM NAVEGAÇÃO
+  if (screen === "diary") {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 dark:from-gray-900 dark:via-amber-950 dark:to-orange-950">
+        <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm sticky top-0 z-10">
+          <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+            <button
+              onClick={() => setScreen("dashboard")}
+              className="text-amber-600 dark:text-amber-400 hover:underline"
+            >
+              ← Voltar
+            </button>
+            <h1 className="text-xl font-bold text-gray-800 dark:text-gray-100">Meu Diário</h1>
+            <div className="w-16" />
+          </div>
+        </header>
+
+        <main className="max-w-6xl mx-auto px-4 py-8">
+          {!bookOpen ? (
+            // Capa do livro fechado
+            <div className="flex items-center justify-center min-h-[600px]">
+              <button
+                onClick={() => setBookOpen(true)}
+                className="relative group"
+              >
+                <div className="w-80 h-96 bg-gradient-to-br from-amber-700 via-amber-600 to-amber-800 rounded-r-2xl shadow-2xl transform transition-all duration-500 hover:scale-105 hover:shadow-3xl border-l-8 border-amber-900">
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-white p-8">
+                    <BookOpen className="w-20 h-20 mb-4 opacity-90" />
+                    <h2 className="text-3xl font-bold mb-2 text-center">Meu Diário</h2>
+                    <p className="text-amber-100 text-center text-sm">Clique para abrir</p>
+                  </div>
+                  {/* Detalhes do livro */}
+                  <div className="absolute top-0 left-0 w-full h-full">
+                    <div className="absolute top-4 left-4 right-4 h-1 bg-amber-900/30 rounded"></div>
+                    <div className="absolute bottom-4 left-4 right-4 h-1 bg-amber-900/30 rounded"></div>
+                  </div>
+                </div>
+                {/* Sombra do livro */}
+                <div className="absolute -bottom-2 left-4 right-4 h-4 bg-black/20 blur-xl rounded-full"></div>
+              </button>
+            </div>
+          ) : (
+            // Livro aberto com páginas
+            <div className="flex items-center justify-center min-h-[600px] gap-4">
+              {/* Botão página anterior */}
+              <button
+                onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
+                disabled={currentPage === 0}
+                className="p-4 bg-amber-600 hover:bg-amber-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-full shadow-lg transition-all hover:scale-110 disabled:hover:scale-100"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+
+              {/* Livro aberto */}
+              <div className="flex gap-1 perspective-1000">
+                {/* Página esquerda */}
+                <div className="w-96 h-[600px] bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 rounded-l-2xl shadow-2xl p-8 border-r-2 border-amber-200 dark:border-amber-800">
+                  {currentPage === 0 ? (
+                    // Primeira página - Nova entrada
+                    <div className="h-full flex flex-col space-y-6">
+                      <h3 className="text-2xl font-bold text-amber-800 dark:text-amber-300 mb-4 text-center border-b-2 border-amber-300 dark:border-amber-700 pb-2">
+                        Nova Entrada
+                      </h3>
+                      
+                      <div className="flex-1 space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-amber-700 dark:text-amber-400 mb-2">
+                            Como você se sente?
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="Ex: Ansioso, feliz, cansado..."
+                            value={feeling}
+                            onChange={(e) => setFeeling(e.target.value)}
+                            className="w-full px-3 py-2 rounded-lg border-2 border-amber-300 dark:border-amber-700 focus:border-amber-500 dark:focus:border-amber-500 outline-none bg-white/80 dark:bg-gray-800/80 text-gray-900 dark:text-gray-100 text-sm"
+                          />
+                        </div>
+
+                        <div className="flex-1">
+                          <label className="block text-sm font-medium text-amber-700 dark:text-amber-400 mb-2">
+                            O que aconteceu hoje no seu dia?
+                          </label>
+                          <textarea
+                            placeholder="Escreva sobre seu dia..."
+                            value={diaryContent}
+                            onChange={(e) => setDiaryContent(e.target.value)}
+                            rows={12}
+                            className="w-full px-3 py-2 rounded-lg border-2 border-amber-300 dark:border-amber-700 focus:border-amber-500 dark:focus:border-amber-500 outline-none bg-white/80 dark:bg-gray-800/80 text-gray-900 dark:text-gray-100 resize-none text-sm"
+                          />
+                        </div>
+
+                        <button
+                          onClick={() => {
+                            if (feeling.trim() && diaryContent.trim()) {
+                              saveDiaryEntry(feeling, diaryContent);
+                              setFeeling("");
+                              setDiaryContent("");
+                              alert("Entrada salva! 📖");
+                            }
+                          }}
+                          disabled={!feeling.trim() || !diaryContent.trim()}
+                          className="w-full bg-gradient-to-r from-amber-500 to-orange-600 text-white py-2 rounded-lg font-medium hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                        >
+                          Salvar no diário
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    // Páginas de entradas anteriores (página esquerda)
+                    <div className="h-full flex flex-col">
+                      {diaryEntries[currentPage * 2 - 2] ? (
+                        <>
+                          <div className="flex items-center justify-between mb-4 pb-2 border-b-2 border-amber-300 dark:border-amber-700">
+                            <span className="text-xs text-amber-600 dark:text-amber-400">
+                              {diaryEntries[currentPage * 2 - 2].date}
+                            </span>
+                            {diaryEntries[currentPage * 2 - 2].mood && (
+                              <span className="text-2xl">
+                                {moodEmojis[diaryEntries[currentPage * 2 - 2].mood].emoji}
+                              </span>
+                            )}
+                          </div>
+                          <p className="font-semibold text-amber-800 dark:text-amber-300 mb-3 text-sm">
+                            {diaryEntries[currentPage * 2 - 2].feeling}
+                          </p>
+                          <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed overflow-y-auto flex-1">
+                            {diaryEntries[currentPage * 2 - 2].content}
+                          </p>
+                        </>
+                      ) : (
+                        <div className="h-full flex items-center justify-center text-amber-400 dark:text-amber-600">
+                          <p className="text-sm italic">Página em branco</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Página direita */}
+                <div className="w-96 h-[600px] bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 rounded-r-2xl shadow-2xl p-8">
+                  {currentPage === 0 ? (
+                    // Primeira página direita - Instruções
+                    <div className="h-full flex flex-col items-center justify-center text-center space-y-6">
+                      <BookOpen className="w-16 h-16 text-amber-600 dark:text-amber-400" />
+                      <h3 className="text-xl font-bold text-amber-800 dark:text-amber-300">
+                        Bem-vindo ao seu diário
+                      </h3>
+                      <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                        Este é seu espaço seguro para expressar seus sentimentos e registrar seu dia a dia.
+                      </p>
+                      <p className="text-xs text-amber-600 dark:text-amber-400 italic">
+                        Use as setas para navegar entre as páginas
+                      </p>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-8">
+                        Total de entradas: {diaryEntries.length}
+                      </div>
+                    </div>
+                  ) : (
+                    // Páginas de entradas anteriores (página direita)
+                    <div className="h-full flex flex-col">
+                      {diaryEntries[currentPage * 2 - 1] ? (
+                        <>
+                          <div className="flex items-center justify-between mb-4 pb-2 border-b-2 border-amber-300 dark:border-amber-700">
+                            <span className="text-xs text-amber-600 dark:text-amber-400">
+                              {diaryEntries[currentPage * 2 - 1].date}
+                            </span>
+                            {diaryEntries[currentPage * 2 - 1].mood && (
+                              <span className="text-2xl">
+                                {moodEmojis[diaryEntries[currentPage * 2 - 1].mood].emoji}
+                              </span>
+                            )}
+                          </div>
+                          <p className="font-semibold text-amber-800 dark:text-amber-300 mb-3 text-sm">
+                            {diaryEntries[currentPage * 2 - 1].feeling}
+                          </p>
+                          <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed overflow-y-auto flex-1">
+                            {diaryEntries[currentPage * 2 - 1].content}
+                          </p>
+                        </>
+                      ) : (
+                        <div className="h-full flex items-center justify-center text-amber-400 dark:text-amber-600">
+                          <p className="text-sm italic">Página em branco</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Botão próxima página */}
+              <button
+                onClick={() => setCurrentPage(currentPage + 1)}
+                disabled={currentPage >= Math.ceil(diaryEntries.length / 2)}
+                className="p-4 bg-amber-600 hover:bg-amber-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-full shadow-lg transition-all hover:scale-110 disabled:hover:scale-100"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
+            </div>
+          )}
+
+          {/* Indicador de página */}
+          {bookOpen && (
+            <div className="text-center mt-6 text-sm text-amber-700 dark:text-amber-400">
+              Página {currentPage === 0 ? "1" : `${currentPage * 2} - ${currentPage * 2 + 1}`}
+            </div>
+          )}
+        </main>
+      </div>
+    );
+  }
+
+  // Community Screen
+  if (screen === "community") {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-950 dark:to-blue-950">
+        <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm sticky top-0 z-10">
+          <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+            <button
+              onClick={() => setScreen("dashboard")}
+              className="text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              ← Voltar
+            </button>
+            <h1 className="text-xl font-bold text-gray-800 dark:text-gray-100">Comunidade</h1>
+            <div className="w-16" />
+          </div>
+        </header>
+
+        <main className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+          {/* New Post */}
+          <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-lg p-6 space-y-4">
+            <h2 className="font-bold text-gray-800 dark:text-gray-100">
+              Compartilhe anonimamente
+            </h2>
+            <textarea
+              placeholder="Como você está se sentindo? Compartilhe sua experiência..."
+              value={newPost}
+              onChange={(e) => setNewPost(e.target.value)}
+              rows={4}
+              className="w-full px-4 py-3 rounded-xl border-2 border-purple-200 dark:border-purple-700 focus:border-purple-400 dark:focus:border-purple-500 outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 resize-none"
+            />
+            <button
+              onClick={() => {
+                if (newPost.trim()) {
+                  addCommunityPost(newPost);
+                  setNewPost("");
+                }
+              }}
+              disabled={!newPost.trim()}
+              className="w-full bg-gradient-to-r from-purple-500 to-pink-600 text-white py-3 rounded-xl font-medium hover:shadow-lg hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            >
+              Publicar
+            </button>
+          </div>
+
+          {/* Posts Feed */}
+          <div className="space-y-4">
+            {communityPosts.map((post) => (
+              <div
+                key={post.id}
+                className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 space-y-4"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-bold">
+                    {post.username[0]}
+                  </div>
+                  <span className="font-medium text-gray-800 dark:text-gray-200">
+                    {post.username}
+                  </span>
+                </div>
+                <p className="text-gray-700 dark:text-gray-300">{post.content}</p>
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={() => reactToPost(post.id)}
+                    className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+                  >
+                    💙 {post.reactions}
+                  </button>
+                  <button className="text-sm text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
+                    💪 Apoiar
+                  </button>
+                  <button className="text-sm text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
+                    🌻 Abraço
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Self Care Screen
+  if (screen === "selfcare") {
+    const activities = [
+      {
+        icon: "🧘",
+        title: "Respiração Guiada",
+        duration: "3-5 minutos",
+        description: "12 técnicas diferentes de respiração para cada momento",
+        action: () => setScreen("breathingExercises")
+      },
+      {
+        icon: "🎧",
+        title: "Áudios Relaxantes",
+        duration: "10-15 minutos",
+        description: "Sons da natureza, música ambiente e frequências calmantes",
+        action: () => setScreen("relaxingSounds")
+      },
+      {
+        icon: "🕯️",
+        title: "Meditação Curta",
+        duration: "5-10 minutos",
+        description: "Meditação guiada para acalmar a mente e reduzir ansiedade",
+        action: () => setScreen("meditationList")
+      },
+      {
+        icon: "🌿",
+        title: "Exercício de Gratidão",
+        duration: "5 minutos",
+        description: "35 exercícios práticos para cultivar gratidão diariamente",
+        action: () => setScreen("gratitudeExercises")
+      }
+    ];
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-950 dark:to-blue-950">
+        <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm sticky top-0 z-10">
+          <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+            <button
+              onClick={() => setScreen("dashboard")}
+              className="text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              ← Voltar
+            </button>
+            <h1 className="text-xl font-bold text-gray-800 dark:text-gray-100">Autocuidado</h1>
+            <div className="w-16" />
+          </div>
+        </header>
+
+        <main className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+          <div className="bg-gradient-to-r from-green-400 to-teal-500 rounded-3xl shadow-lg p-8 text-white text-center">
+            <Heart className="w-12 h-12 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold mb-2">Cuide de você</h2>
+            <p className="text-green-50">
+              Pequenos momentos de autocuidado fazem grande diferença
+            </p>
+          </div>
+
+          <div className="grid gap-4">
+            {activities.map((activity, index) => (
+              <button
+                key={index}
+                onClick={() => {
+                  if (activity.action) {
+                    activity.action();
+                  } else {
+                    completeActivity();
+                    alert(`Ótimo! Você completou: ${activity.title} 🌟`);
+                  }
+                }}
+                className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 hover:shadow-xl hover:scale-105 transition-all text-left"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="text-4xl">{activity.icon}</div>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-gray-800 dark:text-gray-100 mb-1">
+                      {activity.title}
+                    </h3>
+                    <p className="text-sm text-purple-600 dark:text-purple-400 mb-2">
+                      {activity.duration}
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {activity.description}
+                    </p>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Tips Screen
+  if (screen === "tips") {
+    const tips = [
+      {
+        title: "Como lidar com crises de ansiedade",
+        content: "Técnicas de respiração, grounding (5 sentidos) e validação emocional podem ajudar."
+      },
+      {
+        title: "Como melhorar o sono",
+        content: "Estabeleça rotina, evite telas antes de dormir e crie ambiente confortável."
+      },
+      {
+        title: "Pequenos hábitos que ajudam",
+        content: "Caminhadas curtas, hidratação, exposição ao sol e momentos de pausa."
+      }
+    ];
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-950 dark:to-blue-950">
+        <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm sticky top-0 z-10">
+          <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+            <button
+              onClick={() => setScreen("dashboard")}
+              className="text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              ← Voltar
+            </button>
+            <h1 className="text-xl font-bold text-gray-800 dark:text-gray-100">Dicas e Apoio</h1>
+            <div className="w-16" />
+          </div>
+        </header>
+
+        <main className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+          <div className="bg-gradient-to-r from-orange-400 to-red-500 rounded-3xl shadow-lg p-8 text-white text-center">
+            <Lightbulb className="w-12 h-12 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold mb-2">Conhecimento é poder</h2>
+            <p className="text-orange-50">
+              Aprenda mais sobre saúde mental e bem-estar
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            {tips.map((tip, index) => (
+              <div
+                key={index}
+                className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 space-y-3"
+              >
+                <h3 className="font-bold text-lg text-gray-800 dark:text-gray-100">
+                  {tip.title}
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400">{tip.content}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Professional Help - ATUALIZADO COM LOCALIZAÇÃO */}
+          <div className="bg-gradient-to-br from-teal-50 to-cyan-50 dark:from-teal-950/30 dark:to-cyan-950/30 border-2 border-teal-300 dark:border-teal-700 rounded-2xl p-6 space-y-4">
+            <div className="flex items-center gap-2 mb-2">
+              <MapPin className="w-5 h-5 text-teal-600 dark:text-teal-400" />
+              <h3 className="font-bold text-teal-800 dark:text-teal-300">
+                Recursos de Apoio - {userData.city}, {userData.state}
+              </h3>
+            </div>
+            
+            <div className="space-y-4 text-sm">
+              <div className="bg-white/60 dark:bg-gray-800/60 rounded-xl p-4">
+                <p className="font-medium text-teal-700 dark:text-teal-400 mb-1">
+                  CVV - Centro de Valorização da Vida
+                </p>
+                <p className="text-teal-600 dark:text-teal-500">📞 Telefone: 188 (24 horas, gratuito)</p>
+                <p className="text-teal-600 dark:text-teal-500">💬 Chat: cvv.org.br</p>
+                <p className="text-xs text-teal-500 dark:text-teal-600 mt-2">
+                  Apoio emocional e prevenção do suicídio
+                </p>
+              </div>
+
+              <div className="bg-white/60 dark:bg-gray-800/60 rounded-xl p-4">
+                <p className="font-medium text-teal-700 dark:text-teal-400 mb-1">
+                  CAPS - Centro de Atenção Psicossocial
+                </p>
+                <p className="text-teal-600 dark:text-teal-500">
+                  📍 Busque a unidade mais próxima em {userData.city}
+                </p>
+                <p className="text-xs text-teal-500 dark:text-teal-600 mt-2">
+                  Atendimento gratuito pelo SUS para saúde mental
+                </p>
+              </div>
+
+              <div className="bg-white/60 dark:bg-gray-800/60 rounded-xl p-4">
+                <p className="font-medium text-teal-700 dark:text-teal-400 mb-1">
+                  Emergências
+                </p>
+                <p className="text-teal-600 dark:text-teal-500">🚑 SAMU: 192</p>
+                <p className="text-teal-600 dark:text-teal-500">🚒 Bombeiros: 193</p>
+                <p className="text-teal-600 dark:text-teal-500">👮 Polícia: 190</p>
+              </div>
+
+              {userData.country.toLowerCase() === "brasil" && (
+                <div className="bg-white/60 dark:bg-gray-800/60 rounded-xl p-4">
+                  <p className="font-medium text-teal-700 dark:text-teal-400 mb-1">
+                    Outros recursos em {userData.state}
+                  </p>
+                  <p className="text-teal-600 dark:text-teal-500">
+                    🏥 UBS (Unidade Básica de Saúde) - Atendimento psicológico gratuito
+                  </p>
+                  <p className="text-teal-600 dark:text-teal-500">
+                    🎓 Clínicas-escola de Psicologia - Atendimento a preços acessíveis
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <p className="text-xs text-teal-600 dark:text-teal-500 italic bg-white/40 dark:bg-gray-800/40 rounded-lg p-3">
+              💙 Lembre-se: buscar ajuda profissional é um ato de coragem e autocuidado. Você não está sozinho.
+            </p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  return null;
 }
